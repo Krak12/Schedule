@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание занятий</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .date-selector {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .date-selector button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .date-selector input {
+            background: #444;
+            border: none;
+            color: #fff;
+            padding: 5px;
+            margin: 0 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        th, td {
+            border-bottom: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+        }
+        tr:hover {
+            background-color: #2a2a2a;
+        }
+        .empty {
+            color: #888;
+        }
+        tr.remote {
+            background-color: orange !important;
+        }
+        tr.remote td {
+            color: black !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Расписание занятий группы Ф1-ИКТ-51м</h1>
+        <p>Неделя № {{ weekNumber }} ({{ odd === 1 ? 'Нечетная' : 'Четная' }})</p>
+        <div class="date-selector">
+            <button @click="prevWeek">&lt;</button>
+            <input type="text" :value="week_start" readonly>
+            <input type="text" :value="week_end" readonly>
+            <button @click="nextWeek">&gt;</button>
+        </div>
+        <div v-for="(dayData, dayName) in items" :key="dayName">
+            <h2>{{ dayName }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Часы</th>
+                        <th>Дисциплина</th>
+                        <th>Аудитория</th>
+                        <th>Группа</th>
+                        <th>Преподаватель</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(slot, timeStart) in dayData" :key="timeStart" :class="{ remote: isRemote(slot) }">
+                        <td>{{ slot.time_start }} - {{ slot.time_end }}</td>
+                        <td :class="{ empty: (Array.isArray(slot.discipline) ? slot.discipline.length === 0 : !slot.discipline) && (Array.isArray(slot.load) ? slot.load.length === 0 : !slot.load) }">
+                          <template v-if="Array.isArray(slot.discipline) ? slot.discipline.length > 0 : !!slot.discipline">
+                            {{ Array.isArray(slot.discipline) ? slot.discipline.join(', ') : slot.discipline }}
+                            <template v-if="Array.isArray(slot.load) ? slot.load.length > 0 : !!slot.load">
+                              <br>
+                              {{ Array.isArray(slot.load) ? slot.load.join(', ') : slot.load }}
+                            </template>
+                          </template>
+                          <template v-else>
+                            {{ Array.isArray(slot.load) ? slot.load.join(', ') : (slot.load || '-') }}
+                          </template>
+                        </td>
+                        <td :class="{ empty: slot.classroom.length === 0 }">{{ slot.classroom.join(', ') || '-' }}</td>
+                        <td :class="{ empty: (Array.isArray(slot.course) ? slot.course.length === 0 : !slot.course) && (Array.isArray(slot.group) ? slot.group.length === 0 : !slot.group) }">
+                            {{ Array.isArray(slot.course) ? slot.course.join(', ') : (slot.course) }}
+                            <span v-if="Array.isArray(slot.course) ? slot.course.length > 0 : !!slot.course"> курс </span> 
+                            <span v-if="slot.group.length > 0" @click="openWeek1" style="cursor: pointer; text-decoration: underline;">{{ slot.group.join(', ') }}</span>
+                            <span v-else>-</span>
+                            <span v-if="Array.isArray(slot.group) ? slot.group.length > 0 : !!slot.group"> группа</span>
+                        </td>
+                        <td :class="{ empty: slot.teacher.length === 0 }">{{ slot.teacher.join(', ') || '-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const { createApp } = Vue;
+        const scheduleData = {
+  "schedule_hash": "7a3fd26c2b3a0e0b179b49968f2f6ac08de2989a097b66be2c8bd152b5ba6592",
+  "week_start": "17.11.2025",
+  "week_end": "23.11.2025",
+  "weekNumber": 12,
+  "odd": 2,
+  "items": {
+    "Понедельник 17.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "15:20": {
+        "date": "",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    },
+    "Вторник 18.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "15:20": {
+        "date": "",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    },
+    "Среда 19.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "15:20": {
+        "date": "",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    },
+    "Четверг 20.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "15:20": {
+        "date": "",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    },
+    "Пятница 21.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "2025-11-21",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Фурер Ольга Вениаминовна"
+        ],
+        "department": "Иностранных языков",
+        "discipline": [
+          "Иностранный язык в профессиональной деятельности"
+        ],
+        "load": "Практические и семинарские занятия",
+        "classroom": [
+          "2-08-00"
+        ]
+      },
+      "15:20": {
+        "date": "2025-11-21",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Фурер Ольга Вениаминовна"
+        ],
+        "department": "Иностранных языков",
+        "discipline": [
+          "Иностранный язык в профессиональной деятельности"
+        ],
+        "load": "Практические и семинарские занятия",
+        "classroom": [
+          "2-08-00"
+        ]
+      },
+      "17:05": {
+        "date": "2025-11-21",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Фурер Ольга Вениаминовна"
+        ],
+        "department": "Иностранных языков",
+        "discipline": [
+          "Иностранный язык в профессиональной деятельности"
+        ],
+        "load": "Практические и семинарские занятия",
+        "classroom": [
+          "2-08-00"
+        ]
+      }
+    },
+    "Суббота 22.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "2025-11-22",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Тарасов Вениамин Николаевич"
+        ],
+        "department": "Управления в технических системах",
+        "discipline": [
+          "Математическая теория надежности"
+        ],
+        "load": "Практические и семинарские занятия",
+        "classroom": [
+          "2-01-35 кл.1"
+        ]
+      },
+      "11:40": {
+        "date": "2025-11-22",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Тарасов Вениамин Николаевич"
+        ],
+        "department": "Управления в технических системах",
+        "discipline": [
+          "Математическая теория надежности"
+        ],
+        "load": "Лабораторные занятия",
+        "classroom": [
+          "2-01-35 кл.1"
+        ]
+      },
+      "13:35": {
+        "date": "2025-11-22",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Тарасов Вениамин Николаевич"
+        ],
+        "department": "Управления в технических системах",
+        "discipline": [
+          "Математическая теория надежности"
+        ],
+        "load": "Лабораторные занятия",
+        "classroom": [
+          "2-01-35 кл.1"
+        ]
+      },
+      "15:20": {
+        "date": "2025-11-22",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "кибербезопасности и управления (Факультет №1)",
+        "proficiency_level": "Магистратура",
+        "study_form": "Очная",
+        "direction_preparation": "Инфокоммуникационные технологии и системы связи",
+        "course": "Первый",
+        "group": [
+          "Ф1-ИКТ-51м"
+        ],
+        "teacher": [
+          "Тарасов Вениамин Николаевич"
+        ],
+        "department": "Управления в технических системах",
+        "discipline": [
+          "Математическая теория надежности"
+        ],
+        "load": "Лабораторные занятия",
+        "classroom": [
+          "2-01-35 кл.1"
+        ]
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    },
+    "Воскресенье 23.11.2025": {
+      "08:10": {
+        "date": "",
+        "time_start": "08:10",
+        "time_end": "09:45",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "09:55": {
+        "date": "",
+        "time_start": "09:55",
+        "time_end": "11:30",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "11:40": {
+        "date": "",
+        "time_start": "11:40",
+        "time_end": "13:15",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "13:35": {
+        "date": "",
+        "time_start": "13:35",
+        "time_end": "15:10",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "15:20": {
+        "date": "",
+        "time_start": "15:20",
+        "time_end": "16:55",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      },
+      "17:05": {
+        "date": "",
+        "time_start": "17:05",
+        "time_end": "18:40",
+        "subdivision": "",
+        "proficiency_level": "",
+        "study_form": "",
+        "direction_preparation": "",
+        "course": "",
+        "group": [],
+        "teacher": [],
+        "teacher_s": [],
+        "department": "",
+        "discipline": [],
+        "load": "",
+        "classroom": []
+      }
+    }
+  }
+};
+        const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+        const timeSlots = {
+            '08:10': '09:45',
+            '09:55': '11:30',
+            '11:40': '13:15',
+            '13:35': '15:10',
+            '15:20': '16:55',
+            '17:05': '18:40'
+        };
+        const emptySlotTemplate = {
+            date: '',
+            subdivision: '',
+            proficiency_level: '',
+            study_form: '',
+            direction_preparation: '',
+            course: '',
+            group: [],
+            teacher: [],
+            teacher_s: [],
+            department: '',
+            discipline: [],
+            load: '',
+            classroom: []
+        };
+        createApp({
+            data() {
+                return {
+                    ...scheduleData
+                };
+            },
+            methods: {
+                parseDate(str) {
+                    const [d, m, y] = str.split('.');
+                    return new Date(y, m - 1, d);
+                },
+                formatDate(date) {
+                    return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+                },
+                generateEmptyDay() {
+                    const day = {};
+                    Object.keys(timeSlots).forEach(start => {
+                        day[start] = {
+                            ...emptySlotTemplate,
+                            time_start: start,
+                            time_end: timeSlots[start]
+                        };
+                    });
+                    return day;
+                },
+                generateEmptyItems(startDate) {
+                    const items = {};
+                    let current = new Date(startDate);
+                    for (let i = 0; i < 7; i++) {
+                        const dayName = days[i];
+                        const dayStr = this.formatDate(current);
+                        items[`${dayName} ${dayStr}`] = this.generateEmptyDay();
+                        current.setDate(current.getDate() + 1);
+                    }
+                    return items;
+                },
+                prevWeek() {
+                    window.location.href = 'week11.html';
+                },
+                nextWeek() {
+                    window.location.href = 'week13.html';
+                },
+                getISOWeek(date) {
+                    const d = new Date(date.getTime());
+                    d.setDate(d.getDate() + 4 - (d.getDay() || 7)); // Корректировка на начало недели
+                    const yearStart = new Date(d.getFullYear(), 0, 1);
+                    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                },
+                openWeek1() {
+                    const startDate = new Date(2025, 8, 1); // September 1, 2025 (months are 0-indexed in JS)
+                    const today = new Date();
+                    const timeDiff = today - startDate;
+                    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    let weekNo = Math.floor(daysDiff / 7) + 1;
+
+                    if (today.getDay() === 0) {
+                      weekNo += 1;
+                    }
+
+                    if (weekNo > 17) weekNo = 1;
+
+                    window.location.href = `week${weekNo}.html`;
+                },
+                isRemote(slot) {
+                    return slot.classroom.join(', ').includes('Дистанционно');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

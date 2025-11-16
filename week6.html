@@ -100,11 +100,25 @@
                 <tbody>
                     <tr v-for="(slot, timeStart) in dayData" :key="timeStart" :class="{ remote: isRemote(slot) }">
                         <td>{{ slot.time_start }} - {{ slot.time_end }}</td>
-                        <td :class="{ empty: slot.discipline.length === 0 }">{{ slot.discipline.join(', ') || '-' }}</td>
+                        <td :class="{ empty: (Array.isArray(slot.discipline) ? slot.discipline.length === 0 : !slot.discipline) && (Array.isArray(slot.load) ? slot.load.length === 0 : !slot.load) }">
+                          <template v-if="Array.isArray(slot.discipline) ? slot.discipline.length > 0 : !!slot.discipline">
+                            {{ Array.isArray(slot.discipline) ? slot.discipline.join(', ') : slot.discipline }}
+                            <template v-if="Array.isArray(slot.load) ? slot.load.length > 0 : !!slot.load">
+                              <br>
+                              {{ Array.isArray(slot.load) ? slot.load.join(', ') : slot.load }}
+                            </template>
+                          </template>
+                          <template v-else>
+                            {{ Array.isArray(slot.load) ? slot.load.join(', ') : (slot.load || '-') }}
+                          </template>
+                        </td>
                         <td :class="{ empty: slot.classroom.length === 0 }">{{ slot.classroom.join(', ') || '-' }}</td>
-                        <td :class="{ empty: slot.group.length === 0 }">
+                        <td :class="{ empty: (Array.isArray(slot.course) ? slot.course.length === 0 : !slot.course) && (Array.isArray(slot.group) ? slot.group.length === 0 : !slot.group) }">
+                            {{ Array.isArray(slot.course) ? slot.course.join(', ') : (slot.course) }}
+                            <span v-if="Array.isArray(slot.course) ? slot.course.length > 0 : !!slot.course"> курс </span> 
                             <span v-if="slot.group.length > 0" @click="openWeek1" style="cursor: pointer; text-decoration: underline;">{{ slot.group.join(', ') }}</span>
                             <span v-else>-</span>
+                            <span v-if="Array.isArray(slot.group) ? slot.group.length > 0 : !!slot.group"> группа</span>
                         </td>
                         <td :class="{ empty: slot.teacher.length === 0 }">{{ slot.teacher.join(', ') || '-' }}</td>
                     </tr>
@@ -966,8 +980,26 @@
                 nextWeek() {
                     window.location.href = 'week7.html';
                 },
+                getISOWeek(date) {
+                    const d = new Date(date.getTime());
+                    d.setDate(d.getDate() + 4 - (d.getDay() || 7)); // Корректировка на начало недели
+                    const yearStart = new Date(d.getFullYear(), 0, 1);
+                    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                },
                 openWeek1() {
-                    window.location.href = 'week1.html';
+                    const startDate = new Date(2025, 8, 1); // September 1, 2025 (months are 0-indexed in JS)
+                    const today = new Date();
+                    const timeDiff = today - startDate;
+                    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    let weekNo = Math.floor(daysDiff / 7) + 1;
+
+                    if (today.getDay() === 0) {
+                      weekNo += 1;
+                    }
+
+                    if (weekNo > 17) weekNo = 1;
+
+                    window.location.href = `week${weekNo}.html`;
                 },
                 isRemote(slot) {
                     return slot.classroom.join(', ').includes('Дистанционно');
