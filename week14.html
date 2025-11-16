@@ -68,7 +68,8 @@
             color: #888;
         }
         tr.remote {
-            background-color: orange !important;
+            background-color: #FF8C00 !important; 
+            filter: brightness(0.7) !important; 
         }
         tr.remote td {
             color: black !important;
@@ -959,7 +960,7 @@
                     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
                 },
                 openWeek1() {
-                    const startDate = new Date(2025, 8, 1); // September 1, 2025 (months are 0-indexed in JS)
+                    const startDate = new Date(2025, 8, 1); // Сентябрь 1, 2025
                     const today = new Date();
                     const timeDiff = today - startDate;
                     const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
